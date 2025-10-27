@@ -3,62 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stream Automation Options</title>
-    <!-- Custom CSS based on Tailwind concepts (to avoid CSP issues with the CDN) -->
+    <title>Simple Stream Automation Options</title>
+    <script src="options.js"></script>
     <style>
-        /* Variables for easy color/spacing changes */
+        /* --- Color Variables (Light and Dark Mode) --- */
         :root {
-            --bg-color: #f7f7f9;
+            /* Light Mode Defaults */
+            --bg-color: #f6f8fa; /* Light Gray Background */
             --card-bg: #ffffff;
-            --primary-color: #2563eb; /* Blue-600 */
-            --green-color: #10b981; /* Green-500 */
-            --text-primary: #1f2937; /* Gray-800 */
-            --text-secondary: #4b5563; /* Gray-600 */
+            --primary-color: #238636; /* Success/Enabled Green (Updated) */
+            --text-primary: #24292e; /* Black/Dark Gray */
+            --text-secondary: #586069; /* Muted Gray */
+            --border-color: #e1e4e8; /* Light Border */
+            --shadow-color: rgba(27, 31, 35, 0.04);
         }
 
-        /* Base styles for the small popup */
+        .dark-mode {
+            /* Dark Mode Overrides */
+            --bg-color: #0d1117; /* Very dark background */
+            --card-bg: #161b22; /* Slightly lighter card background */
+            --primary-color: #238636; /* Success/Enabled Green (Updated) */
+            --text-primary: #c9d1d9; /* Off-White Text */
+            --text-secondary: #8b949e; /* Muted Light Gray */
+            --border-color: #30363d; /* Dark Border */
+            --shadow-color: rgba(1, 4, 9, 0.5);
+        }
+
+        /* --- Base Styles for the Popup --- */
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 10px;
-            width: 280px; /* Slightly wider for better readability */
+            width: 280px;
             background-color: var(--bg-color);
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
         }
         .card {
             background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 15px;
+            /* Subtle shadow for light mode, slightly stronger for dark */
+            box-shadow: 0 1px 3px var(--shadow-color), 0 0 0 1px var(--border-color);
+            border: 1px solid var(--border-color);
         }
         .header {
             font-size: 1.125rem; /* 18px */
-            font-weight: 700;
-            color: var(--text-primary);
+            font-weight: 600;
             margin-bottom: 15px;
-            padding-bottom: 8px;
+            text-align: left; /* Aligned left, like repository titles */
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            color: var(--text-primary);
+            transition: color 0.3s;
         }
+
+        /* --- Row and Label Styles --- */
         .row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 10px 0;
-            margin-bottom: 5px; 
+            border-bottom: 1px solid var(--border-color);
+        }
+        .row:last-of-type {
+            border-bottom: none;
+            padding-bottom: 0;
         }
         .label {
-            font-size: 1rem;
-            color: var(--text-primary);
-            flex-grow: 1;
+            font-size: 0.95rem;
             font-weight: 500;
+            color: var(--text-primary);
         }
-        
-        /* Custom Switch Styling */
+        .description {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* --- Toggle Switch Styles --- */
         .toggle-switch {
             position: relative;
             display: inline-block;
             width: 44px;
             height: 24px;
-            cursor: pointer;
         }
         .toggle-switch input {
             opacity: 0;
@@ -67,11 +96,12 @@
         }
         .slider {
             position: absolute;
+            cursor: pointer;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #d1d5db; /* Gray-300 off state */
+            background-color: var(--text-secondary); /* Off state color */
             transition: .4s;
             border-radius: 24px;
         }
@@ -82,7 +112,7 @@
             width: 20px;
             left: 2px;
             bottom: 2px;
-            background-color: white;
+            background-color: white; /* Always white inside the slider for contrast */
             transition: .4s;
             border-radius: 50%;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -93,67 +123,36 @@
         input:checked + .slider:before {
             transform: translateX(20px);
         }
-
-        /* Status message styling (kept for the element, but not actively used for success states) */
-        .status-message {
-            text-align: center;
-            font-size: 0.875rem; /* 14px */
-            font-weight: 500;
-            padding-top: 15px;
-            min-height: 20px; /* Fixed height for consistency */
-        }
-        .text-green { color: var(--green-color); }
-        .text-gray { color: var(--text-secondary); }
     </style>
 </head>
 <body>
     <div class="card">
         <div class="header">Simple Stream Automation</div>
         
-        <!-- Service Configuration Block -->
-        <div id="service-options">
-            
-            <!-- Crunchyroll Configuration -->
-            <div class="row">
-                <label for="crToggle" class="label">Crunchyroll Automation</label>
-                
-                <label class="toggle-switch">
-                    <!-- Dynamic attributes used for iteration and storage -->
-                    <input 
-                        type="checkbox" 
-                        id="crToggle"
-                        data-storage-key="cr_enabled"
-                        data-service-name="Crunchyroll"
-                    >
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <!-- Netflix Configuration -->
-            <div class="row">
-                <label for="netflixToggle" class="label">Netflix Automation</label>
-                
-                <label class="toggle-switch">
-                    <!-- Dynamic attributes used for iteration and storage -->
-                    <input 
-                        type="checkbox" 
-                        id="netflixToggle"
-                        data-storage-key="netflix_enabled"
-                        data-service-name="Netflix"
-                    >
-                    <span class="slider"></span>
-                </label>
-            </div>
-            
-            <!-- Future services can be added here -->
-            
+        <!-- CRUNCHYROLL AUTOMATION -->
+        <div class="row">
+            <label class="label">
+                Crunchyroll Automation
+                <span class="description">Skip intro, skip credits, next episode</span>
+            </label>
+            <label class="toggle-switch">
+                <input type="checkbox" data-storage-key="cr_enabled">
+                <span class="slider"></span>
+            </label>
         </div>
         
-        <!-- Status message element removed as per user request (no longer needed) -->
-        
-    </div>
+        <!-- NETFLIX AUTOMATION -->
+        <div class="row">
+            <label class="label">
+                Netflix Automation
+                <span class="description">Skip intro, next episode</span>
+            </label>
+            <label class="toggle-switch">
+                <input type="checkbox" data-storage-key="netflix_enabled">
+                <span class="slider"></span>
+            </label>
+        </div>
 
-    <!-- Ensure options.js is in the same directory -->
-    <script src="options.js"></script>
+    </div>
 </body>
 </html>

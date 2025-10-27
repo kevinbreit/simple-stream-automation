@@ -1,77 +1,64 @@
-document.addEventListener('DOMContentLoaded', initializeOptions);
-
-// Global status message element (kept for cleanup, but functionality removed)
-const statusMessage = document.getElementById('status');
-const TOGGLE_SELECTOR = 'input[data-storage-key]';
-
-/**
- * Saves the state of a specific toggle to chrome.storage.local.
- * @param {HTMLElement} toggle - The checkbox input element.
- */
-function saveState(toggle) {
-    const isEnabled = toggle.checked;
-    const storageKey = toggle.dataset.storageKey;
-    const serviceName = toggle.dataset.serviceName || 'Service'; // Fallback name
+document.addEventListener('DOMContentLoaded', () => {
     
-    if (!storageKey) {
-        console.error("Toggle element is missing data-storage-key.");
-        return;
+    // --- Dark Mode Detection (Automatic) ---
+
+    // Function to check the system's color scheme preference and apply the class
+    function applySystemTheme(e) {
+        // e.matches is true if dark mode is preferred, or check window.matchMedia if called directly
+        const prefersDark = e && e.matches !== undefined ? e.matches : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (prefersDark) {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
     }
 
-    // Save to local storage
-    chrome.storage.local.set({ [storageKey]: isEnabled }, () => {
-        // Logging the save action to the console for debugging, but no UI update
-        console.log(`${serviceName} automation set to: ${isEnabled}`);
-    });
-}
+    // 1. Apply theme immediately on load
+    applySystemTheme();
 
-/**
- * Restores the state of all toggle switches when the page loads.
- */
-function restoreOptions(toggles) {
-    // 1. Collect all storage keys used by the toggles
-    const keysToFetch = Array.from(toggles).map(toggle => toggle.dataset.storageKey).filter(key => key);
+    // 2. Set up listener for system preference changes (e.g., user switches system theme)
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applySystemTheme);
 
-    if (keysToFetch.length === 0) {
-        console.warn("No toggles found with data-storage-key.");
-        // We'll leave the status message for this specific warning, but skip the normal logging.
-        statusMessage.textContent = 'No services configured.';
-        return;
+
+    // --- Automation Toggle Logic (Dynamic) ---
+
+    // Function to save the state of any automation toggle
+    function saveState(event) {
+        const toggle = event.target;
+        const key = toggle.getAttribute('data-storage-key');
+        const isEnabled = toggle.checked;
+
+        // Ensure we only save keys that exist
+        if (key) {
+            chrome.storage.local.set({ [key]: isEnabled });
+        }
     }
 
-    // 2. Read all keys from local storage
-    chrome.storage.local.get(keysToFetch, (data) => {
+    // Function to restore the state of all automation toggles when the page loads
+    function restoreOptions() {
+        // Select all checkboxes that have a data-storage-key attribute (the automation toggles)
+        const automationToggles = document.querySelectorAll('input[type="checkbox"][data-storage-key]');
         
-        // 3. Iterate over the toggles and set their checked state
-        toggles.forEach(toggle => {
-            const storageKey = toggle.dataset.storageKey;
-            
-            // Default to true if no value is found (or undefined).
-            // This ensures automation is ON by default.
-            const isEnabled = data[storageKey] !== false; 
-            
-            toggle.checked = isEnabled;
-        });
-        
-        // Removed: Initial status display and timeout clearing the status.
-    });
-}
+        // Collect all storage keys we need to fetch
+        const keysToFetch = Array.from(automationToggles).map(toggle => toggle.getAttribute('data-storage-key'));
 
-/**
- * Initializes listeners and restores state for all dynamic toggles.
- */
-function initializeOptions() {
-    // Find all toggle inputs using the dynamic selector
-    const toggles = document.querySelectorAll(TOGGLE_SELECTOR);
-
-    // 1. Set up event listeners iteratively
-    toggles.forEach(toggle => {
-        // Use an anonymous function to call saveState with the element itself
-        toggle.addEventListener('change', () => {
-            saveState(toggle);
+        chrome.storage.local.get(keysToFetch, (data) => {
+            automationToggles.forEach(toggle => {
+                const key = toggle.getAttribute('data-storage-key');
+                // Default to true if no value is found (allowing automation to be on by default)
+                const isEnabled = data[key] !== false; 
+                toggle.checked = isEnabled;
+            });
         });
+    }
+
+    // 3. Attach listeners to the automation toggles
+    const automationToggles = document.querySelectorAll('input[type="checkbox"][data-storage-key]');
+    automationToggles.forEach(toggle => {
+        toggle.addEventListener('change', saveState);
     });
 
-    // 2. Restore the previous state for all toggles
-    restoreOptions(toggles);
-}
+    // 4. Restore automation states on page load
+    restoreOptions();
+});
