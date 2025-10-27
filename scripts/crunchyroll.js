@@ -40,6 +40,13 @@ chrome.storage.local.get('cr_injector_enabled', (data) => {
                 skipIntro.click();
             }
 
+            // Logic for "Skip Recap"
+            const skipRecap = document.querySelector('#velocity-controls-package [aria-label="Skip Recap"]');
+            if (skipRecap && skipRecap.checkVisibility()) {
+                console.log("CR Injector: Clicking Skip Recap.");
+                skipRecap.click();
+            }
+
             // Logic for "Skip Credits" / "Next Episode"
             const skipCredits = document.querySelector('#velocity-controls-package [aria-label="Skip Credits"]');
             if (skipCredits && skipCredits.checkVisibility()) {
