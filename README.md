@@ -49,8 +49,8 @@ Automation will only run on the specified streaming sites when the corresponding
 | `manifest.json` | **Configuration** | Defines the extension's name, version, permissions (`storage`), action (`default_popup`), and sets up content script injection paths for both Crunchyroll and Netflix URLs. | 
 | `options.html` | **Popup UI** | The HTML/CSS for the small popup window. Uses a dynamic structure with `data-storage-key` attributes for easy expansion to new services. | 
 | `options.js` | **Popup Logic** | Handles reading and writing toggle states from `chrome.storage.local`. Uses `querySelectorAll` to dynamically manage multiple switches. | 
-| `content.js` | **Crunchyroll Logic** | Injected into the Crunchyroll player iframe. Checks the `cr_enabled` state and contains the logic to click intro/next episode buttons, including necessary hover simulation. | 
-| `netflix_content.js` | **Netflix Logic** | Injected into the main Netflix viewing page. Checks the `netflix_enabled` state and contains the logic to click skip intro/next episode buttons. | 
+| `scripts/crunchyroll.js` | **Crunchyroll Logic** | Injected into the Crunchyroll player iframe. Checks the `cr_enabled` state and contains the logic to click intro/next episode buttons, including necessary hover simulation. | 
+| `scripts/netflix.js` | **Netflix Logic** | Injected into the main Netflix viewing page. Checks the `netflix_enabled` state and contains the logic to click skip intro/next episode buttons. | 
 
 ## 💡 Notes on Development
 
